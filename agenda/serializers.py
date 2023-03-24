@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
 from agenda.models import Agendamento
 from datetime import datetime
 from django.utils import timezone
@@ -6,11 +7,15 @@ from django.utils import timezone
 class AgendamentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agendamento
-        fields = ['id','data_horario','nome_cliente','email_cliente','telefone_cliente']
-    # data_horario = serializers.DateTimeField()
-    # nome_cliente = serializers.CharField(max_length=200)
-    # email_cliente = serializers.EmailField()
-    # telefone_cliente = serializers.CharField(max_length=20)
+        fields = '__all__'
+    prestador = serializers.CharField()
+
+    def validate_prestador(self, value):
+        try:
+            prestador_obj = User.objects.get(username=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("username não existe")
+        return prestador_obj
 
     def validate_data_horario(self, value):
         if value < timezone.now():
